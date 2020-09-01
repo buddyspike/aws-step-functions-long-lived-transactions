@@ -1,0 +1,39 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+          Common infrastructure used to deploy serverless applications.
+Resources:
+  ## S3 bucket for logging access to other S3 buckets created within this stack
+  LogsBucket:
+    Type: "AWS::S3::Bucket"
+    Properties:
+      AccessControl: "LogDeliveryWrite"
+      BucketName: "aws-step-functions-long-lived-transactions-s3-logs"
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        IgnorePublicAcls: true
+        BlockPublicPolicy: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: "AES256"
+
+  ## S3 raw bucket with environment prefix and not public, with dependency on S3 Logs
+  ArtifactsBucket:
+    Type: "AWS::S3::Bucket"
+    Properties:
+      BucketName: "aws-step-functions-long-lived-transactions-artifacts"
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        IgnorePublicAcls: true
+        BlockPublicPolicy: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: "AES256"
+      LoggingConfiguration:
+        DestinationBucketName: "aws-step-functions-long-lived-transactions-s3-logs"
+        LogFilePrefix: "aws-step-functions-long-lived-transactions-artifacts" 
+    DependsOn:
+      - LogsBucket

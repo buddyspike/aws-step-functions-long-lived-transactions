@@ -4,7 +4,11 @@ S3_BUCKET := $(S3_BUCKET)
 STACK_NAME := $(STACK_NAME)
 TEMPLATE = template.yaml
 
-.PHONY: install test clean build lambda teardown package
+ifeq ("$(S3_BUCKET)", "")
+	S3_BUCKET := "aws-step-functions-long-lived-transactions-artifacts"
+endif 
+
+.PHONY: install test clean build lambda teardown package create-environment teardown-environment
 
 install:
 		go get -u ./...
@@ -49,3 +53,10 @@ deploy: build
 .PHONY: teardown
 teardown:
 	aws cloudformation delete-stack --stack-name $(STACK_NAME)
+
+.PHONY: create-environment
+create-environment:
+	aws cloudformation deploy --stack-name aws-step-functions-long-lived-transactions-common --template-file "./environment.yaml"
+
+.PHONY: teardown-environment
+	aws cloudformation delete-stack --stack-name aws-step-functions-long-lived-transactions-common
